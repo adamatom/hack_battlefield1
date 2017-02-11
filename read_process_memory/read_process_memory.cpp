@@ -48,13 +48,13 @@ Player get_local_player(const lz::ClientPlayerManager& player_manager)
 
 vector<Player> get_remote_players(const lz::ClientPlayerManager& player_manager)
 {
-	lz::PlayerList slots = player_manager.Players();
+	lz::PlayerList player_list = player_manager.Players();
 	vector<Player> players;
 	const int max_players = 64;
 	for (int i = 0; i < max_players; i++) {
 		try {
 			Player p;
-			lz::ClientPlayer client_player = slots.ClientPlayerAt(i);
+			lz::ClientPlayer client_player = player_list.ClientPlayerAt(i);
 			p.name = client_player.Name();
 			p.team = client_player.Team();
 			p.is_vehicle = client_player.IsVehicle();
@@ -97,7 +97,7 @@ void add_remote_players_to_result(
 		}
 		if (t != 1 && t != 2) { continue; } // bad object snuck through
 		const string tstr = "team" + to_string(t);
-		const int tcount = team_count[t]; // likes to crash reading this array
+		const int tcount = team_count[t];
 
 		result[tstr][tcount]["name"] = remote_player.name;
 		result[tstr][tcount]["health"] = remote_player.health;
@@ -115,7 +115,7 @@ void add_remote_players_to_result(
 int main()
 {
 
-	HWND hwnd = FindWindow(NULL, L"Battlefield™ 1");
+	HWND hwnd = FindWindow(NULL, L"Battlefieldï¿½ 1");
 	if (!hwnd)
 	{
 		cout << "Window not found!\n";

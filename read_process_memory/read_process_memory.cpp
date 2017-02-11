@@ -11,21 +11,6 @@
 #include "PlayerTypes.h"
 
 using namespace std;
-using namespace _o;
-
-bool contruct_player_manager(ClientPlayerManager& pm);
-void add_local_player_to_result(crow::json::wvalue& result, const Player& player);
-void add_remote_players_to_result(
-	crow::json::wvalue& result, const string& local_name, const vector<Player>& players);
-string get_player_name(HANDLE phandle, const ClientPlayer& player);
-float get_player_fov(HANDLE phandle, const ClientSoldierEntity& player_entity);
-void get_player_health(HANDLE phandle, const ClientSoldierEntity& player_entity, float* o_health, float* o_max_health);
-void get_player_pos(HANDLE phandle, const ClientSoldierEntity& player_entity, float* x, float* y, float* z);
-bool bad_player_manager(const ClientPlayerManager& playerManager);
-bool bad_player_entity(const ClientSoldierEntity& entity);
-bool bad_player_name(const ClientPlayer local);
-bool soldier_to_ClientSoldierEntity(HANDLE phandle, uintptr_t soldier, ClientSoldierEntity* soldier_entity);
-
 
 string slurp(ifstream& in) {
 	stringstream sstr;
@@ -33,158 +18,58 @@ string slurp(ifstream& in) {
 	return sstr.str();
 }
 
-
-Player get_local_player(HANDLE phandle, const ClientPlayerManager& player_manager)
-{
-	ClientPlayer local_player;
-	ReadProcessMemory(phandle, (void*)player_manager.m_pLocalPlayer, &local_player, sizeof(ClientPlayer), 0);
-	if (bad_player_name(local_player)) { return Player{}; }
-	auto name = get_player_name(phandle, local_player);
-
-	ClientSoldierEntity player_entity;
-	const bool player_entity_decoded = soldier_to_ClientSoldierEntity(phandle, local_player.ClientSoldierEntity, &player_entity);
-	if( !player_entity_decoded || bad_player_entity(player_entity)) { 
-		return Player{ name, local_player.Team };
-	}
-
-	auto fov = get_player_fov(phandle, player_entity);
-	float health, max_health;
-	get_player_health(phandle, player_entity, &health, &max_health);
-
-	float x, y, z;
-	get_player_pos(phandle, player_entity, &x, &y, &z);
-
-	const bool is_vehicle = local_player.Vehicle != (uintptr_t)0;
-
-	return Player{ name, local_player.Team, is_vehicle, health, max_health, fov, player_entity.yaw, x, y, z };
-}
-
-vector<Player> get_remote_players(HANDLE phandle, const ClientPlayerManager& player_manager)
-{
-	vector<Player> players;
-
-	PlayerList list;
-	ReadProcessMemory(phandle, (void*)player_manager.m_playerList, &list, sizeof(PlayerList), 0);
-
-	const int max_players = 64;
-	for (int i = 0; i < max_players; i++) {
-		if (!IsValidPtr(list.players[i])) continue;
-
-		ClientPlayer player;
-		ReadProcessMemory(phandle, (void*)list.players[i], &player, sizeof(ClientPlayer), 0);
-		if (bad_player_name(player)) { continue; }
-		auto name = get_player_name(phandle, player);
-
-		ClientSoldierEntity player_entity;
-		const bool player_entity_decoded = soldier_to_ClientSoldierEntity(phandle, player.ClientSoldierEntity, &player_entity);
-		if (!player_entity_decoded || bad_player_entity(player_entity)) {
-			continue;
-		}
-
-		float health, max_health;
-		get_player_health(phandle, player_entity, &health, &max_health);
-
-		float x, y, z;
-		get_player_pos(phandle, player_entity, &x, &y, &z);
-
-		const bool is_vehicle = player.Vehicle != (uintptr_t)0;
-
-		// Not a big deal if the health and position go a little screwy, no chance for segfault or anything. Let the UI decide what is good or bad.
-		players.emplace_back(Player{ name, player.Team, is_vehicle, health, max_health, x, y, z });
-	}
-
-	return players;
-}
-
-
-
-HANDLE phandle;
-
-
-int main()
-{
-
-	HWND hwnd = FindWindow(NULL, L"Battlefield™ 1");
-	if (!hwnd)
-	{
-		cout << "Window not found!\n";
-		cin.get();
-		return 0;
-	}
-
-	DWORD pid;
-	GetWindowThreadProcessId(hwnd, &pid);
-	phandle = OpenProcess(PROCESS_VM_READ, 0, pid);
-	if (!phandle)
-	{
-		cout << "Could not get handle!\n";
-		cin.get();
-		return 0;
-	}
-
-
-	crow::SimpleApp app;
-
-	CROW_ROUTE(app, "/index.html")
-		([] {
-		ifstream myfile("index.html");
-		string render = slurp(myfile);
-		myfile.close();
-		return render;
-	});
-
-	CROW_ROUTE(app, "/drawmap.js")
-		([] {
-		ifstream myfile("drawmap.js");
-		string render = slurp(myfile);
-		myfile.close();
-		return render;
-	});
-
-	CROW_ROUTE(app, "/report")
-		([]{
-		crow::json::wvalue result;
-		ClientPlayerManager player_manager;
-
-		if (!contruct_player_manager(player_manager)) {
-			result["status"] = "failure";
-			result["reason"] = "bad player manager";
-			return result;
-		}
-
-		result["status"] = "success";
-		Player player = get_local_player(phandle, player_manager);
-		vector<Player> remote_players = get_remote_players(phandle, player_manager);
-		add_local_player_to_result(result, player);
-		add_remote_players_to_result(result, player.name, remote_players);
-		return result;
-	});
-	app.port(18080).multithreaded().run();
-}
-
-template<typename T>
-T read(uintptr_t base, uintptr_t off) {
-	T obj;
-	ReadProcessMemory(phandle, (void*)(base + off), &obj, sizeof(T), 0);
-	return obj;
-}
-
-bool contruct_player_manager(ClientPlayerManager& pm)
+lz::ClientPlayerManager construct_player_manager(HANDLE phandle)
 {
 	uintptr_t address = 0x14341b650;
-	_o::GameClientContext ctxt;
-	_o::ClientGameManager mgr;
+	return lz::GameClientContext(phandle, address).GameManager().PlayerManager();
+}
 
+Player get_local_player(const lz::ClientPlayerManager& player_manager)
+{
+	Player p;
+	try {
+		lz::ClientPlayer local_player = player_manager.LocalPlayer();
+		p.name = local_player.Name();
+		p.team = local_player.Team();
+		p.is_vehicle = local_player.IsVehicle();
+		p.health = local_player.Health();
+		p.max_health = local_player.MaxHealth();
+		p.fov = local_player.Fov();
+		p.yaw = local_player.Yaw();
+		auto pos = local_player.Position();
+		p.x = pos.x;
+		p.y = pos.y;
+		p.z = pos.z;
+	}
+	catch (const BadName& n) { }
+	catch (const BadClientSoldierEntity& n) { }
+	return p;
+}
 
-	lz::GameClientContext lz_ctxt(phandle, address);
-	lz::ClientPlayer lz_p = lz_ctxt.m_pManager().m_pPlayerManager().m_pLocalPlayer();
-	auto test1 = lz_p.Team();
-	auto test2 = lz_p.Name();
-
-	ReadProcessMemory(phandle, (void*)address, &ctxt, sizeof(_o::GameClientContext), 0);
-	ReadProcessMemory(phandle, (void*)ctxt.m_pManager, &mgr, sizeof(_o::ClientGameManager), 0);
-	ReadProcessMemory(phandle, (void*)mgr.m_pPlayerManager, &pm, sizeof(_o::ClientPlayerManager), 0);
-	return bad_player_manager(pm) == false;
+vector<Player> get_remote_players(const lz::ClientPlayerManager& player_manager)
+{
+	lz::PlayerList slots = player_manager.Players();
+	vector<Player> players;
+	const int max_players = 64;
+	for (int i = 0; i < max_players; i++) {
+		try {
+			Player p;
+			lz::ClientPlayer client_player = slots.ClientPlayerAt(i);
+			p.name = client_player.Name();
+			p.team = client_player.Team();
+			p.is_vehicle = client_player.IsVehicle();
+			p.health = client_player.Health();
+			p.max_health = client_player.MaxHealth();
+			auto pos = client_player.Position();
+			p.x = pos.x;
+			p.y = pos.y;
+			p.z = pos.z;
+			players.emplace_back(p);
+		}
+		catch (const std::exception& e) {
+		}
+	}
+	return players;
 }
 
 void add_local_player_to_result(crow::json::wvalue& result, const Player& player)
@@ -225,84 +110,67 @@ void add_remote_players_to_result(
 	}
 }
 
-string get_player_name(HANDLE phandle, const ClientPlayer& player)
+
+
+int main()
 {
-	char name[128];
-	ReadProcessMemory(phandle, (void*)player.Name, &name, sizeof(char) * 128, 0);
-	name[127] = 0;
-	return name;
-}
 
-float get_player_fov(HANDLE phandle, const ClientSoldierEntity& player_entity)
-{
-	ClientSoldierWeapon client_soldier_weapon;
-	if (!IsValidPtr(player_entity.weapon)) { return 0; }
-
-	ReadProcessMemory(phandle, (void*)player_entity.weapon, &client_soldier_weapon, sizeof(ClientSoldierWeapon), 0);
-	if (!IsValidPtr(client_soldier_weapon.m_pWeapon)) { return 0; }
-
-	ClientWeapon player_weapon;
-	ReadProcessMemory(phandle, (void*)client_soldier_weapon.m_pWeapon, &player_weapon, sizeof(ClientWeapon), 0);
-	return player_weapon.fov;
-}
-
-void get_player_health(HANDLE phandle, const ClientSoldierEntity& player_entity, float* o_health, float* o_max_health)
-{
-	if (!IsValidPtr(player_entity.healthComponent))
+	HWND hwnd = FindWindow(NULL, L"Battlefield™ 1");
+	if (!hwnd)
 	{
-		*o_health = *o_max_health = 0.0f;
-		return;
+		cout << "Window not found!\n";
+		cin.get();
+		return 0;
 	}
 
-	BFClientSoldierHealthComponent player_health;
-	ReadProcessMemory(phandle, (void*)player_entity.healthComponent, &player_health, sizeof(BFClientSoldierHealthComponent), 0);
-	*o_health = player_health.Health;
-	*o_max_health = player_health.MaxHealth;
-}
-
-void get_player_pos(HANDLE phandle, const ClientSoldierEntity& player_entity, float* x, float* y, float* z)
-{
-	if (!IsValidPtr(player_entity.soldierPrediction))
+	DWORD pid;
+	GetWindowThreadProcessId(hwnd, &pid);
+	HANDLE phandle = OpenProcess(PROCESS_VM_READ, 0, pid);
+	if (!phandle)
 	{
-		*x = *y = *z = 0.0f;
-		return;
+		cout << "Could not get handle!\n";
+		cin.get();
+		return 0;
 	}
 
-	ClientSoldierPrediction player_phys;
-	ReadProcessMemory(phandle, (void*)player_entity.soldierPrediction, &player_phys, sizeof(ClientSoldierPrediction), 0);
-	*x = player_phys.Position.x;
-	*y = player_phys.Position.y;
-	*z = player_phys.Position.z;
+
+	crow::SimpleApp app;
+
+	CROW_ROUTE(app, "/index.html")
+		([] {
+		ifstream myfile("index.html");
+		string render = slurp(myfile);
+		myfile.close();
+		return render;
+	});
+
+	CROW_ROUTE(app, "/drawmap.js")
+		([] {
+		ifstream myfile("drawmap.js");
+		string render = slurp(myfile);
+		myfile.close();
+		return render;
+	});
+
+	CROW_ROUTE(app, "/report")
+		([phandle]{
+		crow::json::wvalue result;
+		try {
+			result["status"] = "success";
+			lz::ClientPlayerManager player_manager = construct_player_manager(phandle);
+			Player player = get_local_player(player_manager);
+			vector<Player> remote_players = get_remote_players(player_manager);
+			add_local_player_to_result(result, player);
+			add_remote_players_to_result(result, player.name, remote_players);
+			return result;
+		}
+	    catch( const std::out_of_range & e) {
+			result["status"] = "failure";
+			result["reason"] = "bad player manager";
+			return result;
+		}
+
+	});
+	app.port(18080).multithreaded().run();
 }
-
-bool soldier_to_ClientSoldierEntity(HANDLE phandle, uintptr_t soldier, ClientSoldierEntity* soldier_entity)
-{
-	if (!IsValidPtr(soldier)) { return false; }
-	uintptr_t indirect;
-	ReadProcessMemory(phandle, (void*)soldier, &indirect, sizeof(uintptr_t), 0);
-
-	uintptr_t ptr_to_entity = indirect - sizeof(uintptr_t);
-	if (!IsValidPtr(ptr_to_entity)) { return false; }
-	ReadProcessMemory(phandle,(void*)ptr_to_entity, soldier_entity, sizeof(ClientSoldierEntity), 0);
-
-	return !bad_player_entity(*soldier_entity);
-}
-
-bool bad_player_manager(const ClientPlayerManager& playerManager)
-{
-	return !IsValidPtr(playerManager.m_pLocalPlayer) || !IsValidPtr(playerManager.m_playerList);
-}
-
-bool bad_player_name(const ClientPlayer local)
-{
-	return !IsValidPtr(local.Name);
-}
-
-bool bad_player_entity(const ClientSoldierEntity& entity)
-{
-	// Some of the code does use other pointers found in the entity, but we consider them optional, 
-	// so they can be bad without the entire ClientSoldierEntity being declared bad.
-	return !IsValidPtr(entity.healthComponent) || !IsValidPtr(entity.soldierPrediction);
-}
-
 

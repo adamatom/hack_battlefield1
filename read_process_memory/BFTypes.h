@@ -22,11 +22,26 @@ T read(HANDLE phandle, uintptr_t base, uintptr_t off) {
 	return obj;
 }
 
-typedef struct D3DXVECTOR3 {
+class BadName : public std::out_of_range
+{
+public:
+	BadName() : std::out_of_range("Bad name pointer") {}
+};
+
+class BadClientSoldierEntity : public std::out_of_range
+{
+public:
+	BadClientSoldierEntity() : std::out_of_range("Bad ClientSoldierEntity pointer") {}
+};
+
+class D3DXVECTOR3 {
+public:
+	D3DXVECTOR3() : x(0), y(0), z(0) {}
+	D3DXVECTOR3(float x, float y, float z) : x(x), y(y), z(z) {}
 	float x;
 	float y;
 	float z;
-} D3DXVECTOR3, *LPD3DXVECTOR3;
+};
 
 namespace _o
 {
@@ -137,112 +152,237 @@ namespace _o
 
 namespace lz
 {
-#define BEGIN_LAZY_READER(TYPE)\
-	class TYPE { \
-	public: \
-		TYPE##(HANDLE phandle, uintptr_t base_addr) : phandle(phandle), base_addr(base_addr) {}
 
-#define END_LAZY_READER() \
-	private: \
-		HANDLE phandle; \
-		uintptr_t base_addr; \
-	};
-
-#define GET_POINTER_FIELD(TYPE, MEMBER, RET_TYPE)\
-	lz::##RET_TYPE MEMBER() const { \
-			uintptr_t off = offsetof(_o::##TYPE, MEMBER); \
-			uintptr_t base = read<uintptr_t>(phandle, base_addr, off); \
-			return lz::##RET_TYPE(phandle, base);\
-	}
-
-#define GET_DATA_FIELD(TYPE, MEMBER, RET_TYPE)\
-	RET_TYPE MEMBER() const { \
-			uintptr_t off = offsetof(_o::##TYPE, MEMBER); \
-			return read<RET_TYPE>(phandle, base_addr, off); \
-	}
-
-
-/* Much boilerplate on these classes that looked like the following. Macros cut out the boilerplate	
-class GameClientContext
-	{
+	class BFClientSoldierHealthComponent {
 	public:
-		GameClientContext(HANDLE phandle, uintptr_t base_addr)
-			: phandle(phandle), base_addr(base_addr) {}
+		BFClientSoldierHealthComponent(HANDLE phandle, uintptr_t base_addr) : phandle(phandle), base_addr(base_addr) {}
 
-		lz::ClientGameManager GetClientGameManager() const
-		{
-			uintptr_t off = offsetof(_o::GameClientContext, m_pManager);
-			uintptr_t cgm_base = read<uintptr_t>(base_addr, off);
-			return lz::ClientGameManager(phandle, cgm_base);
+		float Health() const {
+			uintptr_t off = offsetof(_o::BFClientSoldierHealthComponent, Health);
+			return read<float>(phandle, base_addr, off);
+		}
+
+		float MaxHealth() const {
+			uintptr_t off = offsetof(_o::BFClientSoldierHealthComponent, MaxHealth);
+			return read<float>(phandle, base_addr, off);
 		}
 	private:
 		HANDLE phandle;
 		uintptr_t base_addr;
-	};*/
+	};
 
-	BEGIN_LAZY_READER(BFClientSoldierHealthComponent)
-		GET_DATA_FIELD(BFClientSoldierHealthComponent, Health, float)
-		GET_DATA_FIELD(BFClientSoldierHealthComponent, MaxHealth, float)
-	END_LAZY_READER()
+	class ClientSoldierPrediction {
+	public:
+		ClientSoldierPrediction(HANDLE phandle, uintptr_t base_addr) : phandle(phandle), base_addr(base_addr) {}
+		D3DXVECTOR3 Position() const {
+			uintptr_t off = offsetof(_o::ClientSoldierPrediction, Position);
+			return read<D3DXVECTOR3>(phandle, base_addr, off);
+		}
+	private:
+		HANDLE phandle;
+		uintptr_t base_addr;
+	};
 
-	BEGIN_LAZY_READER(ClientSoldierPrediction)
-		GET_DATA_FIELD(ClientSoldierPrediction, Position, D3DXVECTOR3)
-	END_LAZY_READER()
+	class ClientWeapon {
+	public:
+		ClientWeapon(HANDLE phandle, uintptr_t base_addr) : phandle(phandle), base_addr(base_addr) {}
+		float FOV() const {
+			uintptr_t off = offsetof(_o::ClientWeapon, fov);
+			return read<float>(phandle, base_addr, off);
+		}
+	private:
+		HANDLE phandle;
+		uintptr_t base_addr;
+	};
 
-	BEGIN_LAZY_READER(ClientWeapon)
-		GET_DATA_FIELD(ClientWeapon, fov, float)
-	END_LAZY_READER()
-	
-	BEGIN_LAZY_READER(ClientSoldierWeapon)
-		GET_POINTER_FIELD(ClientSoldierWeapon, m_pWeapon, ClientWeapon)
-	END_LAZY_READER()
+	class ClientSoldierWeapon {
+	public:
+		ClientSoldierWeapon(HANDLE phandle, uintptr_t base_addr) : phandle(phandle), base_addr(base_addr) {}
 
-	BEGIN_LAZY_READER(ClientSoldierEntity)
-		GET_POINTER_FIELD(ClientSoldierEntity, healthComponent, BFClientSoldierHealthComponent)
-		GET_POINTER_FIELD(ClientSoldierEntity, soldierPrediction, ClientSoldierPrediction)
-		GET_DATA_FIELD(ClientSoldierEntity, yaw, float)
-		GET_POINTER_FIELD(ClientSoldierEntity, weapon, ClientSoldierWeapon)
-	END_LAZY_READER()
+		ClientWeapon Weapon() const {
+			uintptr_t off = offsetof(_o::ClientSoldierWeapon, m_pWeapon);
+			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
+			return ClientWeapon(phandle, base);
+		}
+	private:
+		HANDLE phandle;
+		uintptr_t base_addr;
+	};
+
+	class ClientSoldierEntity {
+	public:
+		ClientSoldierEntity(HANDLE phandle, uintptr_t base_addr) : phandle(phandle), base_addr(base_addr) {}
+
+		float Yaw() const {
+			uintptr_t off = offsetof(_o::ClientSoldierEntity, yaw);
+			return read<float>(phandle, base_addr, off);
+		}
+
+		float Fov() const {
+			uintptr_t off = offsetof(_o::ClientSoldierEntity, weapon);
+			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
+			return ClientSoldierWeapon(phandle, base).Weapon().FOV();
+		}
+
+		D3DXVECTOR3 Position() const {
+			uintptr_t off = offsetof(_o::ClientSoldierEntity, soldierPrediction);
+			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
+			return ClientSoldierPrediction(phandle, base).Position();
+		}
+
+		float Health() const {
+			uintptr_t off = offsetof(_o::ClientSoldierEntity, healthComponent);
+			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
+			return BFClientSoldierHealthComponent(phandle, base).Health();
+		}
+
+		float MaxHealth() const {
+			uintptr_t off = offsetof(_o::ClientSoldierEntity, healthComponent);
+			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
+			return BFClientSoldierHealthComponent(phandle, base).MaxHealth();
+		}
+
+	private:
+		HANDLE phandle;
+		uintptr_t base_addr;
+	};
 
 
-	BEGIN_LAZY_READER(ClientPlayer)
+	class ClientPlayer {
+	public:
+		ClientPlayer(HANDLE phandle, uintptr_t base_addr)
+			: phandle(phandle), base_addr(base_addr) {}
+
 		std::string Name() const {
 			char name[128];
 			uintptr_t off = offsetof(_o::ClientPlayer, Name);
 			uintptr_t name_ptr;
 			ReadProcessMemory(phandle, (void*)(base_addr + off), &name_ptr, sizeof(uintptr_t), 0);
-			ReadProcessMemory(phandle, (void*)name_ptr, &name, sizeof(char)*128, 0);
+			if (!IsValidPtr(name_ptr)) {
+				throw BadName{};
+			}
+			ReadProcessMemory(phandle, (void*)name_ptr, &name, sizeof(char) * 128, 0);
 			name[127] = 0;
 			return name;
 		}
-		GET_DATA_FIELD(ClientPlayer, Team, __int32)
-		GET_DATA_FIELD(ClientPlayer, ClientSoldierEntity, uintptr_t)
-		GET_DATA_FIELD(ClientPlayer, Vehicle, uintptr_t)
-	END_LAZY_READER()
 
-	BEGIN_LAZY_READER(PlayerList)
-		lz::ClientPlayer ClientPlayer(int index) const {
-			uintptr_t off = index*sizeof(uintptr_t);
-			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
-			return lz::ClientPlayer(phandle, base);
+		int Team() const {
+			uintptr_t off = offsetof(_o::ClientPlayer, Team);
+			return read<__int32>(phandle, base_addr, off);
 		}
-	END_LAZY_READER()
+		bool IsVehicle() const {
+			uintptr_t off = offsetof(_o::ClientPlayer, Vehicle);
+			return read<uintptr_t>(phandle, base_addr, off) != 0;
+		}
 
-	BEGIN_LAZY_READER(ClientPlayerManager)
-		GET_POINTER_FIELD(ClientPlayerManager, m_playerList, PlayerList)
-		GET_POINTER_FIELD(ClientPlayerManager, m_pLocalPlayer, ClientPlayer)
-	END_LAZY_READER()
+		float Yaw() {
+			try {
+				return SoldierEntity().Yaw();
+			}
+			catch (const std::out_of_range& e)
+			{
+				return 0.0f;
+			}
+		}
 
-	BEGIN_LAZY_READER(ClientGameManager)
-		GET_POINTER_FIELD(ClientGameManager, m_pPlayerManager, ClientPlayerManager)
-	END_LAZY_READER()
+		float Fov() {
+			try { return SoldierEntity().Fov(); }
+			catch (const std::out_of_range& e) { return 0.0f; }
+		}
 
-	BEGIN_LAZY_READER(GameClientContext)
-		GET_POINTER_FIELD(GameClientContext, m_pManager, ClientGameManager)
-	END_LAZY_READER()
+		float Health() {
+			try {
+				return SoldierEntity().Health();
+			}
+			catch (const std::out_of_range& e) { return 0.0f; }
+		}
 
+		float MaxHealth() {
+			try { return SoldierEntity().MaxHealth(); }
+			catch (const std::out_of_range& e) { return 0.0f; }
+		}
 
+		D3DXVECTOR3 Position() {
+			try { return SoldierEntity().Position(); }
+			catch (const std::out_of_range& e) { return D3DXVECTOR3{}; }
+		}
 
+	private:
+		ClientSoldierEntity SoldierEntity() {
+			uintptr_t off = offsetof(_o::ClientPlayer, ClientSoldierEntity);
+			uintptr_t indirect;
+			ReadProcessMemory(phandle, (void*)(base_addr + off), &indirect, sizeof(uintptr_t), 0);
+			if (!IsValidPtr(indirect)) {
+				throw BadClientSoldierEntity{};
+			}
+			ReadProcessMemory(phandle, (void*)indirect, &indirect, sizeof(uintptr_t), 0);
+			uintptr_t ptr_to_entity = indirect - sizeof(uintptr_t);
+			return lz::ClientSoldierEntity(phandle, ptr_to_entity);
+		}
 
+		HANDLE phandle;
+		uintptr_t base_addr;
+	};
+
+	class PlayerList {
+	public:
+		PlayerList(HANDLE phandle, uintptr_t base_addr) : phandle(phandle), base_addr(base_addr) {}
+
+		ClientPlayer ClientPlayerAt(int index) const {
+			uintptr_t off = index * sizeof(uintptr_t);
+			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
+			return ClientPlayer(phandle, base);
+		}
+	private:
+		HANDLE phandle;
+		uintptr_t base_addr;
+	};
+
+	class ClientPlayerManager {
+	public:
+		ClientPlayerManager(HANDLE phandle, uintptr_t base_addr) : phandle(phandle), base_addr(base_addr) {}
+
+		ClientPlayer LocalPlayer() const {
+			uintptr_t off = offsetof(_o::ClientPlayerManager, m_pLocalPlayer);
+			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
+			return ClientPlayer(phandle, base);
+		}
+
+		PlayerList Players() const {
+			uintptr_t off = offsetof(_o::ClientPlayerManager, m_playerList);
+			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
+			return PlayerList(phandle, base);
+	} 
+	private:
+		HANDLE phandle;
+		uintptr_t base_addr;
+	};
+
+	class ClientGameManager {
+	public:
+		ClientGameManager(HANDLE phandle, uintptr_t base_addr) : phandle(phandle), base_addr(base_addr) {}
+		ClientPlayerManager PlayerManager() const {
+			uintptr_t off = offsetof(_o::ClientGameManager, m_pPlayerManager);
+			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
+			return ClientPlayerManager(phandle, base);
+		}
+		private:
+			HANDLE phandle;
+			uintptr_t base_addr;
+	};
+
+	class GameClientContext {
+	public:
+		GameClientContext(HANDLE phandle, uintptr_t base_addr) : phandle(phandle), base_addr(base_addr) {}
+
+		ClientGameManager GameManager() const {
+			uintptr_t off = offsetof(_o::GameClientContext, m_pManager);
+			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
+			return ClientGameManager(phandle, base);
+		}
+	protected:
+		HANDLE phandle;
+		uintptr_t base_addr;
+	};
 }
 

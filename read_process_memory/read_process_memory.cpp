@@ -115,7 +115,7 @@ void add_remote_players_to_result(
 int main()
 {
 
-	HWND hwnd = FindWindow(NULL, L"Battlefieldï¿½ 1");
+	HWND hwnd = FindWindow(NULL, L"Battlefield™ 1");
 	if (!hwnd)
 	{
 		cout << "Window not found!\n";

@@ -95,6 +95,7 @@ void add_remote_players_to_result(
 			result["local_player"]["x"] = remote_player.x;
 			result["local_player"]["y"] = remote_player.y;
 			result["local_player"]["z"] = remote_player.z;
+			continue; // also dont send the local player in the team list
 		}
 		if (t != 1 && t != 2) { continue; } // bad object snuck through
 		const string tstr = "team" + to_string(t);

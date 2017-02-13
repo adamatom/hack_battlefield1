@@ -4,7 +4,6 @@ var ninety_deg = 1.5708;
 
 // configuration
 //var cone_depth = 80; // 80 meters to help with sniping
-var marker_sz = 10;
 var height_threshold = 3;
 //var max_map_radius = 80;
 var canvas = document.getElementById('canvas');
@@ -13,6 +12,7 @@ var last_response = {status: "failure"};
 // resize the canvas to fill browser window dynamically
 window.addEventListener('resize', resizeCanvas, false);
 var half_radius = Math.min(canvas.width/2, canvas.height/2);
+var marker_sz = 0.04 * half_radius;
 
 function get_dom_int( element, otherwise ) {
     var dom_item = document.getElementById(element);
@@ -26,6 +26,7 @@ function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     half_radius = Math.min(canvas.width/2, canvas.height/2);
+    marker_sz = 0.04 * half_radius;
 }
 
 function draw_vehicle(ctx, pos, color) {
@@ -52,18 +53,36 @@ function draw_vehicle(ctx, pos, color) {
 
 function draw_soldier(ctx, pos, color) {
     ctx.save();
-    ctx.translate(pos.x,pos.z);
-    ctx.rotate(0.785398); // 45 degrees
     ctx.fillStyle = color;
     ctx.strokeStyle = ctx.fillStyle;
+    //ctx.beginPath();
+
+    ctx.translate(pos.x,pos.z);
+    ctx.rotate(pos.yaw);
+
+    var halfm = marker_sz / 2;
+    var height_diff_large = Math.abs(pos.y) <= height_threshold;
+
     ctx.beginPath();
-    if( Math.abs(pos.y) <= height_threshold ) {
-        ctx.fillRect(-0.5*marker_sz, -0.5*marker_sz, marker_sz, marker_sz);
+    ctx.arc(0,0, (marker_sz-(marker_sz/4))/2,0, 2*Math.PI);
+    if( height_diff_large ) {
+        ctx.fill();
     } else {
-        ctx.rect(-0.5*marker_sz, -0.5*marker_sz, marker_sz, marker_sz);
         ctx.stroke();
     }
-    ctx.closePath();
+
+    ctx.beginPath();
+    ctx.moveTo(-halfm, halfm);
+    ctx.lineTo(halfm,halfm);
+    ctx.lineTo(0, marker_sz);
+    ctx.lineTo(-halfm, halfm);
+
+    if( height_diff_large ) {
+        ctx.fill();
+    } else {
+        ctx.stroke();
+    }
+
     ctx.restore();
 }
 
@@ -75,16 +94,18 @@ function world_to_player(local, remote) {
     return {
         x: remote.x - local.x,
         y: remote.y - local.y,
-        z: remote.z - local.z
+        z: remote.z - local.z,
+        yaw: remote.yaw
     }
 }
 
-function player_to_playerup(player_yaw, player) {
+function player_to_playerup(local_player_yaw, player) {
     return {
         // yaw is angle from z axis, which points south. x points east
-        x: -1*player.x*Math.cos(player_yaw) - player.z*Math.sin(player_yaw),
+        x: -1*player.x*Math.cos(local_player_yaw) - player.z*Math.sin(local_player_yaw),
         y: player.y,
-        z: player.x*Math.sin(player_yaw) - player.z*Math.cos(player_yaw)
+        z: player.x*Math.sin(local_player_yaw) - player.z*Math.cos(local_player_yaw),
+        yaw: player.yaw - local_player_yaw - Math.PI
     }
 }
 
@@ -100,7 +121,8 @@ function playerup_to_map(player) {
     return {
         x: norm_x*half_radius,
         y: player.y,
-        z: norm_z*half_radius
+        z: norm_z*half_radius,
+        yaw: player.yaw
     }
 }
 
@@ -150,7 +172,7 @@ function draw_team(ctx, local, team_array, color ) {
         var remote = team_array[i];
         if (remote.health === 0.0 ) continue;
 
-        var remote_pos = {x: remote.x, y: remote.y, z: remote.z };
+        var remote_pos = {x: remote.x, y: remote.y, z: remote.z, yaw: remote.yaw};
         var player_space = world_to_player(local_pos, remote_pos);
         var playerup_space = player_to_playerup(local.yaw, player_space);
         var map_space = playerup_to_map(playerup_space);

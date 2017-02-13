@@ -60,6 +60,7 @@ vector<Player> get_remote_players(const lz::ClientPlayerManager& player_manager)
 			p.is_vehicle = client_player.IsVehicle();
 			p.health = client_player.Health();
 			p.max_health = client_player.MaxHealth();
+			p.yaw = client_player.Yaw();
 			auto pos = client_player.Position();
 			p.x = pos.x;
 			p.y = pos.y;
@@ -103,6 +104,7 @@ void add_remote_players_to_result(
 		result[tstr][tcount]["health"] = remote_player.health;
 		result[tstr][tcount]["max_health"] = remote_player.max_health;
 		result[tstr][tcount]["is_vehicle"] = remote_player.is_vehicle;
+		result[tstr][tcount]["yaw"] = remote_player.yaw;
 		result[tstr][tcount]["x"] = remote_player.x;
 		result[tstr][tcount]["y"] = remote_player.y;
 		result[tstr][tcount]["z"] = remote_player.z;

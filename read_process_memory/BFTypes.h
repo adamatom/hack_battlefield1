@@ -211,6 +211,7 @@ namespace lz
 
 	class ClientSoldierEntity {
 	public:
+		ClientSoldierEntity() : phandle(0), base_addr(0) {}
 		ClientSoldierEntity(HANDLE phandle, uintptr_t base_addr) : phandle(phandle), base_addr(base_addr) {}
 
 		float Yaw() const {
@@ -251,7 +252,17 @@ namespace lz
 	class ClientPlayer {
 	public:
 		ClientPlayer(HANDLE phandle, uintptr_t base_addr)
-			: phandle(phandle), base_addr(base_addr) {}
+				: phandle(phandle), base_addr(base_addr) {
+			uintptr_t off = offsetof(_o::ClientPlayer, ClientSoldierEntity);
+			uintptr_t indirect;
+			ReadProcessMemory(phandle, (void*)(base_addr + off), &indirect, sizeof(uintptr_t), 0);
+			if (!IsValidPtr(indirect)) {
+				throw BadClientSoldierEntity{};
+			}
+			ReadProcessMemory(phandle, (void*)indirect, &indirect, sizeof(uintptr_t), 0);
+			uintptr_t ptr_to_entity = indirect - sizeof(uintptr_t);
+			clientSoldierEntity = ClientSoldierEntity(phandle, ptr_to_entity);
+		}
 
 		std::string Name() const {
 			char name[128];
@@ -277,7 +288,7 @@ namespace lz
 
 		float Yaw() {
 			try {
-				return SoldierEntity().Yaw();
+				return clientSoldierEntity.Yaw();
 			}
 			catch (const std::out_of_range& e)
 			{
@@ -286,42 +297,31 @@ namespace lz
 		}
 
 		float Fov() {
-			try { return SoldierEntity().Fov(); }
+			try { return clientSoldierEntity.Fov(); }
 			catch (const std::out_of_range& e) { return 0.0f; }
 		}
 
 		float Health() {
 			try {
-				return SoldierEntity().Health();
+				return clientSoldierEntity.Health();
 			}
 			catch (const std::out_of_range& e) { return 0.0f; }
 		}
 
 		float MaxHealth() {
-			try { return SoldierEntity().MaxHealth(); }
+			try { return clientSoldierEntity.MaxHealth(); }
 			catch (const std::out_of_range& e) { return 0.0f; }
 		}
 
 		D3DXVECTOR3 Position() {
-			try { return SoldierEntity().Position(); }
+			try { return clientSoldierEntity.Position(); }
 			catch (const std::out_of_range& e) { return D3DXVECTOR3{}; }
 		}
 
 	private:
-		ClientSoldierEntity SoldierEntity() {
-			uintptr_t off = offsetof(_o::ClientPlayer, ClientSoldierEntity);
-			uintptr_t indirect;
-			ReadProcessMemory(phandle, (void*)(base_addr + off), &indirect, sizeof(uintptr_t), 0);
-			if (!IsValidPtr(indirect)) {
-				throw BadClientSoldierEntity{};
-			}
-			ReadProcessMemory(phandle, (void*)indirect, &indirect, sizeof(uintptr_t), 0);
-			uintptr_t ptr_to_entity = indirect - sizeof(uintptr_t);
-			return lz::ClientSoldierEntity(phandle, ptr_to_entity);
-		}
-
 		HANDLE phandle;
 		uintptr_t base_addr;
+		ClientSoldierEntity clientSoldierEntity;
 	};
 
 	class PlayerList {

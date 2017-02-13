@@ -12,10 +12,20 @@ var canvas = document.getElementById('canvas');
 var last_response = {status: "failure"};
 // resize the canvas to fill browser window dynamically
 window.addEventListener('resize', resizeCanvas, false);
+var half_radius = Math.min(canvas.width/2, canvas.height/2);
+
+function get_dom_int( element, otherwise ) {
+    var dom_item = document.getElementById(element);
+    if (dom_item == null) return otherwise;
+    var dom_value = dom_item.value;
+    if ( isNaN(dom_value) ) return otherwise;
+    return parseInt(dom_value);
+}
 
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    half_radius = Math.min(canvas.width/2, canvas.height/2);
 }
 
 function draw_vehicle(ctx, pos, color) {
@@ -78,11 +88,15 @@ function player_to_playerup(player_yaw, player) {
     }
 }
 
+function playerup_dist_to_map_dist( dist ) {
+    var max_map_radius = get_dom_int('map_radius', 80);
+    return (dist / max_map_radius) * half_radius;
+}
+
 function playerup_to_map(player) {
-    var max_map_radius = document.getElementById('map_radius').value;
+    var max_map_radius = get_dom_int('map_radius', 80);
     var norm_x = player.x / max_map_radius;
     var norm_z = player.z / max_map_radius;
-    var half_radius = Math.min(canvas.width/2, canvas.height/2);
     return {
         x: norm_x*half_radius,
         y: player.y,
@@ -92,7 +106,7 @@ function playerup_to_map(player) {
 
 function draw_fov_cone(ctx, fov, alpha) {
     ctx.save();
-    var cone_depth = document.getElementById('cone_depth').value;
+    var cone_depth = get_dom_int('cone_depth', 25);
     var cone_width = Math.tan(fov/2) * cone_depth;
     // cheat by using one point of the fov triangle to get coordinates, then mirror.
     var map_coords = playerup_to_map({x: cone_width, y: 0, z: 0-cone_depth});
@@ -105,6 +119,28 @@ function draw_fov_cone(ctx, fov, alpha) {
     ctx.fill();
     ctx.closePath();
     ctx.restore();
+}
+
+function draw_ring(ctx, radius) {
+    var map_radius = playerup_dist_to_map_dist( radius );
+    ctx.save();
+    ctx.strokeStyle = "rgba(120, 120, 120, 0.8)";
+    ctx.beginPath();
+    ctx.arc(0,0, map_radius, 0, 2*Math.PI);
+    ctx.stroke();
+    ctx.closePath();
+    ctx.restore();
+
+
+}
+
+function draw_range_rings(ctx, increment) {
+    var map_radius = get_dom_int('map_radius', 80);
+    var increment = get_dom_int('range_increment', 10);
+    if( increment <= 0) return;
+    for(var i = 0; i < map_radius; i += increment ) {
+        draw_ring(ctx, i);
+    }
 }
 
 function draw_team(ctx, local, team_array, color ) {
@@ -139,6 +175,8 @@ function draw_map() {
 
     if (last_response.status !== "success" ) { return; }
 
+    draw_range_rings(ctx);
+
     var fov_rad = (Math.PI/180)*last_response.local_player.fov;
     var center_screen_fov = fov_rad * 0.5;
     var under_reticle_fov = fov_rad * 0.2;
@@ -166,12 +204,12 @@ function request_data() {
     xmlhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             last_response = JSON.parse(this.responseText);
+            draw_map();
         }
     };
     xmlhttp.open("GET", url, true);
     xmlhttp.send();
 }
 
-setInterval(request_data, 50);
-setInterval(draw_map, 50);
+setInterval(request_data, 33);
 resizeCanvas();

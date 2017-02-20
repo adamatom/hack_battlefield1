@@ -3,6 +3,8 @@
 #include <windows.h>
 #include <stdexcept>
 
+typedef float matrix4x4_t[4][4];
+
 template <typename T>
 bool IsValidPtr(T p)
 {
@@ -117,11 +119,29 @@ namespace _o
 		ClientSoldierWeapon* weapon; //0x0670 
 	};
 
+	class WeaponComponentData
+	{
+	public:
+		char pad_0x0000[0x180]; //0x0000
+		char* WeaponName; //0x0180 
+
+	};
+
+	class WeaponFiring
+	{
+	public:
+		char pad_0x0000[0x140]; //0x0000
+		WeaponComponentData* m_WeaponComponentData; //0x0140 
+
+	};
+
 	class ClientSoldierWeapon
 	{
 	public:
-		char _0x0000[18968];
+		char pad_0x0000[0x4A18]; //0x0000
 		ClientWeapon* m_pWeapon; //0x4A18 
+		char pad_0x4A20[0x10]; //0x4A20
+		WeaponFiring* Primary; //0x4A30 
 	};
 
 	class ClientWeapon
@@ -146,6 +166,31 @@ namespace _o
 		char _0x0000[32];
 		float Health; //0x0020 
 		float MaxHealth; //0x0024 
+	};
+
+	class ClientCapturePointEntity
+	{
+	public:
+		char pad_0x0000[0xA8]; //0x0000
+		uintptr_t next; //0x00A8 
+		char pad_0x00B0[0x30]; //0x00B0
+		float OwnerCapturePercent; //0x00E0 
+		__int32 OwnerTeam; //0x00E4 
+		__int32 Defenders; //0x00E8 
+		__int32 AttackingTeam; //0x00EC 
+		__int16 N3DE6A3CC; //0x00F0 
+		__int16 N000015A9; //0x00F2 
+		char pad_0x00F4[0x22C]; //0x00F4
+		matrix4x4_t Transform; //0x0320 
+		char pad_0x0360[0x1B8]; //0x0360
+
+	}; //Size=0x0518
+
+	class ClassInfo
+	{
+	public:
+		char pad_0x0000[0x60]; //0x0000
+		uintptr_t first; //0x0060
 	};
 
 };
@@ -197,13 +242,33 @@ namespace lz
 
 	class ClientSoldierWeapon {
 	public:
-		ClientSoldierWeapon(HANDLE phandle, uintptr_t base_addr) : phandle(phandle), base_addr(base_addr) {}
+		ClientSoldierWeapon(HANDLE phandle, uintptr_t base_addr) : phandle(phandle), base_addr(base_addr) { }
 
 		ClientWeapon Weapon() const {
 			uintptr_t off = offsetof(_o::ClientSoldierWeapon, m_pWeapon);
 			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
 			return ClientWeapon(phandle, base);
 		}
+
+		std::string WeaponName() const {
+			uintptr_t weapon_firing_off = offsetof(_o::ClientSoldierWeapon, Primary);
+			uintptr_t weapon_firing_base = read<uintptr_t>(phandle, base_addr, weapon_firing_off);
+
+			uintptr_t WeaponComponentData_off = offsetof(_o::WeaponFiring, m_WeaponComponentData);
+			uintptr_t WeaponComponentData = read<uintptr_t>(phandle, weapon_firing_base, WeaponComponentData_off);
+
+			char name[128];
+			uintptr_t name_off = offsetof(_o::WeaponComponentData, WeaponName);
+			uintptr_t name_ptr;
+			ReadProcessMemory(phandle, (void*)(WeaponComponentData + name_off), &name_ptr, sizeof(uintptr_t), 0);
+			if (!IsValidPtr(name_ptr)) {
+				return "";
+			}
+			ReadProcessMemory(phandle, (void*)name_ptr, &name, sizeof(char) * 128, 0);
+			name[127] = 0;
+			return name;
+		}
+		
 	private:
 		HANDLE phandle;
 		uintptr_t base_addr;
@@ -223,6 +288,12 @@ namespace lz
 			uintptr_t off = offsetof(_o::ClientSoldierEntity, weapon);
 			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
 			return ClientSoldierWeapon(phandle, base).Weapon().FOV();
+		}
+
+		std::string WeaponName() const {
+			uintptr_t off = offsetof(_o::ClientSoldierEntity, weapon);
+			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
+			return ClientSoldierWeapon(phandle, base).WeaponName();
 		}
 
 		D3DXVECTOR3 Position() const {
@@ -286,6 +357,8 @@ namespace lz
 			return read<uintptr_t>(phandle, base_addr, off) != 0;
 		}
 
+
+
 		float Yaw() {
 			try {
 				return clientSoldierEntity.Yaw();
@@ -299,6 +372,10 @@ namespace lz
 		float Fov() {
 			try { return clientSoldierEntity.Fov(); }
 			catch (const std::out_of_range& e) { return 0.0f; }
+		}
+
+		std::string WeaponName() {
+			return clientSoldierEntity.WeaponName();
 		}
 
 		float Health() {
@@ -383,6 +460,86 @@ namespace lz
 	protected:
 		HANDLE phandle;
 		uintptr_t base_addr;
+	};
+
+	class ClientCapturePointEntity
+	{
+	public:
+		ClientCapturePointEntity(HANDLE phandle, uintptr_t base_addr)
+			: phandle(phandle), base_addr(base_addr) {}
+
+		bool HasNext() {
+			uintptr_t off = offsetof(_o::ClientCapturePointEntity, next);
+			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
+			return base != 0;
+		}
+
+		ClientCapturePointEntity Next() const {
+			uintptr_t off = offsetof(_o::ClientCapturePointEntity, next);
+			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
+			base -= offsetof(_o::ClientCapturePointEntity, next);
+			return ClientCapturePointEntity(phandle, base);
+		}
+
+		float OwnerCapturePercent() {
+			uintptr_t off = offsetof(_o::ClientCapturePointEntity, OwnerCapturePercent);
+			return read<float>(phandle, base_addr, off);
+		}
+
+		__int32 OwnerTeam() {
+			uintptr_t off = offsetof(_o::ClientCapturePointEntity, OwnerTeam );
+			return read<__int32>(phandle, base_addr, off);
+		}
+
+		__int32 Defenders() {
+			uintptr_t off = offsetof(_o::ClientCapturePointEntity, Defenders );
+			return read<__int32>(phandle, base_addr, off);
+		}
+
+		__int32 AttackingTeam() {
+			uintptr_t off = offsetof(_o::ClientCapturePointEntity, AttackingTeam );
+			return read<__int32>(phandle, base_addr, off);
+		}
+		 
+		D3DXVECTOR3 Position() {
+			uintptr_t off = offsetof(_o::ClientCapturePointEntity, Transform );
+			float obj[16];
+			if (!IsValidPtr(base_addr + off)) {
+				throw std::out_of_range(std::to_string(base_addr) + " + " + std::to_string(off) + " is not a valid pointer.");
+			}
+			ReadProcessMemory(phandle, (void*)(base_addr + off), &obj[0], sizeof(float) * 16, 0);
+
+			return D3DXVECTOR3{ obj[12], obj[13], obj[14] };
+		}
+
+	protected:
+		HANDLE phandle;
+		uintptr_t base_addr;
+	};
+
+	class ClientCapturePointEntity_ClassInfo
+	{
+	public:
+		ClientCapturePointEntity_ClassInfo(HANDLE phandle, uintptr_t base_addr)
+			: phandle(phandle), base_addr(base_addr) {}
+
+		bool HasList() const {
+			uintptr_t off = offsetof(_o::ClassInfo, first);
+			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
+			return base != 0;
+		}
+
+		ClientCapturePointEntity GetFirst() const {
+			uintptr_t off = offsetof(_o::ClassInfo, first);
+			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
+			base -= offsetof(_o::ClientCapturePointEntity, next);
+			return ClientCapturePointEntity(phandle, base);
+		}
+
+	protected:
+		HANDLE phandle;
+		uintptr_t base_addr;
+		
 	};
 }
 

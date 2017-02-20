@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\crow">
+      <UniqueIdentifier>{9c936bef-432b-49c2-a7b6-df487bbdcb85}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -32,6 +35,72 @@
     </ClInclude>
     <ClInclude Include="Dump.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\app.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\ci_map.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\common.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\dumb_timer_queue.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\http_connection.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\http_parser_merged.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\http_request.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\http_response.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\http_server.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\json.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\logging.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\middleware.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\middleware_context.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\mustache.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\parser.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\query_string.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\routing.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\settings.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\socket_adaptors.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\TinySHA1.hpp">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\utility.h">
+      <Filter>Header Files\crow</Filter>
+    </ClInclude>
+    <ClInclude Include="crow\websocket.h">
+      <Filter>Header Files\crow</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

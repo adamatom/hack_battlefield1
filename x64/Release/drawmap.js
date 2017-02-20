@@ -3,16 +3,15 @@
 var ninety_deg = 1.5708;
 
 // configuration
-//var cone_depth = 80; // 80 meters to help with sniping
 var height_threshold = 3;
-//var max_map_radius = 80;
-var canvas = document.getElementById('canvas');
 
 var last_response = {status: "failure"};
+var canvas = document.getElementById('canvas');
+
 // resize the canvas to fill browser window dynamically
 window.addEventListener('resize', resizeCanvas, false);
 var half_radius = Math.min(canvas.width/2, canvas.height/2);
-var marker_sz = 0.04 * half_radius;
+var marker_sz = 0.03 * half_radius;
 
 function get_dom_int( element, otherwise ) {
     var dom_item = document.getElementById(element);
@@ -26,8 +25,9 @@ function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     half_radius = Math.min(canvas.width/2, canvas.height/2);
-    marker_sz = 0.04 * half_radius;
+    marker_sz = 0.03 * half_radius;
 }
+
 
 function draw_vehicle(ctx, pos, color) {
     ctx.save();
@@ -64,7 +64,7 @@ function draw_soldier(ctx, pos, color) {
     var height_diff_large = Math.abs(pos.y) <= height_threshold;
 
     ctx.beginPath();
-    ctx.arc(0,0, (marker_sz-(marker_sz/4))/2,0, 2*Math.PI);
+    ctx.arc(0,0, (marker_sz-(marker_sz/7))/2,0, 2*Math.PI);
     if( height_diff_large ) {
         ctx.fill();
     } else {
@@ -72,10 +72,12 @@ function draw_soldier(ctx, pos, color) {
     }
 
     ctx.beginPath();
-    ctx.moveTo(-halfm, halfm);
-    ctx.lineTo(halfm,halfm);
+    ctx.fillStyle = "rgba(200,200,200,1)";
+    ctx.strokeStyle = ctx.fillStyle;
+    ctx.moveTo(-halfm*0.8, halfm);
+    ctx.lineTo(halfm*0.8,halfm);
     ctx.lineTo(0, marker_sz);
-    ctx.lineTo(-halfm, halfm);
+    ctx.lineTo(-halfm*0.8, halfm);
 
     if( height_diff_large ) {
         ctx.fill();
@@ -160,15 +162,54 @@ function draw_range_rings(ctx, increment) {
     var map_radius = get_dom_int('map_radius', 80);
     var increment = get_dom_int('range_increment', 10);
     if( increment <= 0) return;
-    for(var i = 0; i < map_radius; i += increment ) {
+    for(var i = increment; i < map_radius; i += increment ) {
         draw_ring(ctx, i);
     }
+}
+
+function draw_flag(ctx, pos, color, neutral, num_defenders, percent) {
+    ctx.save();
+    ctx.translate(pos.x,pos.z);
+
+    var width = marker_sz  * 3;
+    var height = marker_sz * 3;
+    var grd = ctx.createLinearGradient(0, width/2, 0, -width/2);
+
+    if( percent < 0.99 ) {
+        grd.addColorStop(percent, color);
+        grd.addColorStop(percent, neutral);
+        grd.addColorStop(1, neutral);
+    } else {
+        grd.addColorStop(1, color);
+    }
+
+
+    ctx.strokeStyle = grd;
+    ctx.fillStyle = grd;
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+    ctx.moveTo(0, height/2);
+    ctx.lineTo(-width/2, 0);
+    ctx.lineTo(-width/4, 0);
+    ctx.lineTo(-width/4, -height/2);
+    ctx.lineTo(width/4, -height/2);
+    ctx.lineTo(width/4, 0);
+    ctx.lineTo(width/2, 0);
+    ctx.lineTo(0, height/2);
+    ctx.fill();
+
+    ctx.font = "32px Arial";
+    ctx.fillStyle = color;
+    ctx.textAlign = "center";
+    ctx.fillText(num_defenders,0,-2*height/3);
+    ctx.restore();
 }
 
 function draw_team(ctx, local, team_array, color ) {
     if (team_array == null ) return;
     var local_pos = { x: local.x, y: local.y, z:local.z }
-    for (var i = 0, len = team_array.length; i < len; i++) {
+    for (var i = 0; i < team_array.length; i++) {
         var remote = team_array[i];
         if (remote.health === 0.0 ) continue;
 
@@ -184,6 +225,27 @@ function draw_team(ctx, local, team_array, color ) {
     }
 }
 
+function draw_flags(ctx, local, flag_array, mate, enemy, neutral) {
+    if (flag_array == null ) return;
+    var local_pos = { x: local.x, y: local.y, z:local.z }
+    for(var i = 0; i < flag_array.length; i++) {
+        var flag = flag_array[i];
+
+        var flag_pos = {x: flag.x, y: flag.y, z: flag.z };
+        var player_space = world_to_player(local_pos, flag_pos);
+        var playerup_space = player_to_playerup(local.yaw, player_space);
+        var map_space = playerup_to_map(playerup_space);
+
+        if (flag.OwnerTeam == "0" ) {
+            draw_flag(ctx, map_space, neutral, neutral, flag.Defenders, flag.OwnerCapturePercent);
+        } else if (flag.OwnerTeam == local.team) {
+            draw_flag(ctx, map_space, mate, neutral, flag.Defenders, flag.OwnerCapturePercent);
+        } else {
+            draw_flag(ctx, map_space, enemy, neutral, flag.Defenders, flag.OwnerCapturePercent);
+        }
+    }
+}
+
 function draw_map() {
     resizeCanvas();
     var ctx = canvas.getContext('2d');
@@ -193,6 +255,7 @@ function draw_map() {
     ctx.translate(canvas.width/2, canvas.height/2);
     var enemy_color = '#df3939';
     var mate_color = '#52a5f8';
+    var neutral_color = "rgba(200,200,200,1)";
     var unknown_color = '#ffffff';
 
     if (last_response.status !== "success" ) { return; }
@@ -202,9 +265,9 @@ function draw_map() {
     var fov_rad = (Math.PI/180)*last_response.local_player.fov;
     var center_screen_fov = fov_rad * 0.5;
     var under_reticle_fov = fov_rad * 0.2;
-    draw_fov_cone(ctx, center_screen_fov, 0.15); 
-    draw_fov_cone(ctx, under_reticle_fov, 0.15); 
-
+    draw_fov_cone(ctx, center_screen_fov, 0.15);
+    draw_fov_cone(ctx, under_reticle_fov, 0.15);
+    draw_flags(ctx, last_response.local_player, last_response.flags, mate_color, enemy_color, neutral_color);
     if (last_response.local_player.team === 1 ) {
         draw_team(ctx, last_response.local_player, last_response.team1, mate_color);
         draw_team(ctx, last_response.local_player, last_response.team2, enemy_color);
@@ -233,5 +296,5 @@ function request_data() {
     xmlhttp.send();
 }
 
-setInterval(request_data, 33);
 resizeCanvas();
+setInterval(request_data, 33);

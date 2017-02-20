@@ -146,6 +146,28 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BFTypes.h" />
+    <ClInclude Include="crow\app.h" />
+    <ClInclude Include="crow\ci_map.h" />
+    <ClInclude Include="crow\common.h" />
+    <ClInclude Include="crow\dumb_timer_queue.h" />
+    <ClInclude Include="crow\http_connection.h" />
+    <ClInclude Include="crow\http_parser_merged.h" />
+    <ClInclude Include="crow\http_request.h" />
+    <ClInclude Include="crow\http_response.h" />
+    <ClInclude Include="crow\http_server.h" />
+    <ClInclude Include="crow\json.h" />
+    <ClInclude Include="crow\logging.h" />
+    <ClInclude Include="crow\middleware.h" />
+    <ClInclude Include="crow\middleware_context.h" />
+    <ClInclude Include="crow\mustache.h" />
+    <ClInclude Include="crow\parser.h" />
+    <ClInclude Include="crow\query_string.h" />
+    <ClInclude Include="crow\routing.h" />
+    <ClInclude Include="crow\settings.h" />
+    <ClInclude Include="crow\socket_adaptors.h" />
+    <ClInclude Include="crow\TinySHA1.hpp" />
+    <ClInclude Include="crow\utility.h" />
+    <ClInclude Include="crow\websocket.h" />
     <ClInclude Include="Dump.h" />
     <ClInclude Include="PlayerTypes.h" />
     <ClInclude Include="stdafx.h" />

@@ -217,7 +217,7 @@ function draw_team(ctx, local, team_array, color ) {
         var player_space = world_to_player(local_pos, remote_pos);
         var playerup_space = player_to_playerup(local.yaw, player_space);
         var map_space = playerup_to_map(playerup_space);
-        if( remote.is_vehicle ) {
+        if( remote.isVehicle ) {
             draw_vehicle(ctx, map_space, color);
         } else {
             draw_soldier(ctx, map_space, color);

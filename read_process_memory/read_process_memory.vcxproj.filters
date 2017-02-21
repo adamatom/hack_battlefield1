@@ -33,9 +33,6 @@
     <ClInclude Include="PlayerTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Dump.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="crow\app.h">
       <Filter>Header Files\crow</Filter>
     </ClInclude>
@@ -102,12 +99,24 @@
     <ClInclude Include="crow\websocket.h">
       <Filter>Header Files\crow</Filter>
     </ClInclude>
+    <ClInclude Include="RadarPlayer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LazyReaders.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Exceptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="read_process_memory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RadarPlayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

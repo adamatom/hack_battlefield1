@@ -168,12 +168,15 @@
     <ClInclude Include="crow\TinySHA1.hpp" />
     <ClInclude Include="crow\utility.h" />
     <ClInclude Include="crow\websocket.h" />
-    <ClInclude Include="Dump.h" />
+    <ClInclude Include="Exceptions.h" />
+    <ClInclude Include="LazyReaders.h" />
     <ClInclude Include="PlayerTypes.h" />
+    <ClInclude Include="RadarPlayer.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="RadarPlayer.cpp" />
     <ClCompile Include="read_process_memory.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

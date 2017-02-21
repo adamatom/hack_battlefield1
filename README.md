@@ -206,3 +206,12 @@ None of these get instantiated:
 * ClientCheckpointFlagEntity
 * ClientObjectiveEntity
 * ClientSpawnEntity
+
+
+# Class Detection Strategy
+1. Take a ClientSoldierEntity.
+2. Go to offset 0x648 to a ClientSoldierWeaponsComponent.
+3. Got to offset 0x8A8 to a PlayerKit (inhouse name).
+4. Get Gadget1 and Gadget2 ClientSoldierWeapon.
+5. Go to offset 0x30 to get to each WeaponEntityData.
+6. The Class code is at 0x80. The name is at 0x180. Name appears sufficient to tell class.

@@ -5,6 +5,18 @@
 // These class support graceful response to when pointers aren't valid. The lazy readers
 // assume things will work and will report failure via these exceptions. None of these are
 // critical, shut-it-down errors. These occur mostly when the player is dead or not in a game.
+
+class BadClientPlayerManager : public std::out_of_range
+{
+public:
+	BadClientPlayerManager() : std::out_of_range("Bad ClientPlayerManager pointer") {}
+};
+class BadClientGameManager : public std::out_of_range
+{
+public:
+	BadClientGameManager() : std::out_of_range("Bad ClientGameManager pointer") {}
+};
+
 class BadClientPlayer : public std::out_of_range
 {
 public:

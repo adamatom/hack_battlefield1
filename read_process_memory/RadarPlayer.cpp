@@ -17,7 +17,7 @@ const map<string, string> class_lookup = {
 	{"Mortar", "Support"},
 	{"RifleGrenadeLauncher", "Support"},
 
-	{"Webbey Scott Flair Gun", "Scout"},
+	{"Webbey Scott Flare Gun", "Scout"},
 	{"Shield", "Scout"},
 	{"Trench Periscope", "Scout"},
 	{"Tripwire Bomb", "Scout"}
@@ -149,6 +149,13 @@ namespace radar {
 			_gadget2Name = "";
 		}
 
-		_playerClass = determine_class(_gadget1Name, _gadget2Name);
+		// hack for detecting special classes
+		// TODO: refactor this
+		if (_primaryName == "MaximMG0815") {
+			_playerClass = "Sentry";
+		}
+		else {
+			_playerClass = determine_class(_gadget1Name, _gadget2Name);
+		}
 	}
 }

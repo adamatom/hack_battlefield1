@@ -29,62 +29,264 @@ function resizeCanvas() {
 }
 
 
-function draw_vehicle(ctx, pos, color) {
+function draw_vehicle(ctx) {
     ctx.save();
-    ctx.translate(pos.x,pos.z);
-    ctx.fillStyle = color;
-    ctx.strokeStyle = ctx.fillStyle;
     ctx.beginPath();
-    // "tracks"
-    var track_width = marker_sz * 0.3;
-    var track_height = marker_sz * 1.5;
-    ctx.fillRect(-0.5*marker_sz-track_width/2, -0.5*track_height, track_width, track_height);
-    ctx.fillRect(0.5*marker_sz-track_width/2, -0.5*track_height, track_width, track_height);
-    // body
-    if( Math.abs(pos.y) <= height_threshold ) {
-        ctx.fillRect(-0.5*marker_sz, -0.5*marker_sz, marker_sz, marker_sz);
-    } else {
-        ctx.rect(-0.5*marker_sz, -0.5*marker_sz, marker_sz, marker_sz);
-        ctx.stroke();
-    }
-    ctx.closePath();
+    ctx.rect(-8.072255, -11.726016, 16.382044, 23.397657);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.rect(-12.700962, -14.927192, 4.536864, 29.847828);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.rect(8.406098, -14.893661, 4.536864, 29.847828);
+    ctx.fill();
+    ctx.stroke();
     ctx.restore();
 }
 
-function draw_soldier(ctx, pos, color) {
+function draw_unknown(ctx) {
     ctx.save();
-    ctx.fillStyle = color;
-    ctx.strokeStyle = ctx.fillStyle;
-    //ctx.beginPath();
+    ctx.beginPath();
+    ctx.arc(0.0, 0.0, 17.285156, 0.000000, 6.28318531, 1);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+}
 
-    ctx.translate(pos.x,pos.z);
-    ctx.rotate(pos.yaw);
+function draw_medic(ctx) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(-13.497000, -4.063915);
+    ctx.lineTo(-4.219653, -4.161575);
+    ctx.lineTo(-4.219653, -13.438916);
+    ctx.lineTo(3.885816, -13.438916);
+    ctx.lineTo(4.081128, -3.966263);
+    ctx.lineTo(13.456125, -4.063923);
+    ctx.lineTo(13.553785, 3.455608);
+    ctx.lineTo(4.276444, 3.455608);
+    ctx.lineTo(4.276444, 13.514205);
+    ctx.lineTo(-4.219650, 13.514205);
+    ctx.lineTo(-4.219650, 3.357952);
+    ctx.lineTo(-13.496997, 3.357952);
+    ctx.lineTo(-13.497000, -4.063915);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+}
 
-    var halfm = marker_sz / 2;
-    var height_diff_large = Math.abs(pos.y) <= height_threshold;
+function draw_assault(ctx) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(-1.805455, 14.041255);
+    ctx.lineTo(-4.148172, 13.646955);
+    ctx.lineTo(-5.936036, 12.266655);
+    ctx.lineTo(-9.326814, 9.637451);
+    ctx.lineTo(-12.039438, 5.759551);
+    ctx.lineTo(-8.155451, 5.627951);
+    ctx.lineTo(-13.642354, -2.456649);
+    ctx.lineTo(-6.984097, 0.041151);
+    ctx.lineTo(-9.758366, -10.409745);
+    ctx.lineTo(-2.545258, -2.719649);
+    ctx.lineTo(-0.202540, -14.945145);
+    ctx.lineTo(2.325136, -2.916749);
+    ctx.lineTo(9.846492, -10.409745);
+    ctx.lineTo(6.640664, -0.221749);
+    ctx.lineTo(13.545520, -2.982449);
+    ctx.lineTo(8.058629, 4.707751);
+    ctx.lineTo(7.318820, 5.627951);
+    ctx.lineTo(12.435813, 5.562951);
+    ctx.lineTo(10.647950, 8.389251);
+    ctx.lineTo(8.613483, 11.149854);
+    ctx.lineTo(4.544551, 13.384655);
+    ctx.lineTo(1.215418, 13.910555);
+    ctx.lineTo(0.968823, 8.652151);
+    ctx.lineTo(2.941636, 6.943151);
+    ctx.lineTo(3.126593, 4.182651);
+    ctx.lineTo(2.879990, 2.736651);
+    ctx.lineTo(0.044064, 2.145051);
+    ctx.lineTo(-2.175351, 2.999451);
+    ctx.bezierCurveTo(-2.175351, 2.999451, -2.915164, 5.102851, -2.915164, 5.497251);
+    ctx.bezierCurveTo(-2.915164, 5.891551, -2.545258, 7.337651, -2.298654, 7.600551);
+    ctx.bezierCurveTo(-2.052060, 7.863451, -1.373903, 8.520751, -1.373903, 8.520751);
+    ctx.lineTo(-0.880697, 12.661755);
+    ctx.lineTo(-1.805455, 14.041255);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+}
+
+function draw_scout(ctx) {
+    ctx.save();
 
     ctx.beginPath();
-    ctx.arc(0,0, (marker_sz-(marker_sz/7))/2,0, 2*Math.PI);
-    if( height_diff_large ) {
-        ctx.fill();
-    } else {
-        ctx.stroke();
-    }
+    ctx.moveTo(0.910677, -9.307873);
+    ctx.lineTo(-1.437139, -9.307873);
+    ctx.lineTo(-1.575246, -11.344949);
+    ctx.lineTo(-2.921787, -11.344949);
+    ctx.lineTo(-4.337382, -10.827048);
+    ctx.lineTo(-6.374457, -9.653140);
+    ctx.lineTo(-7.962685, -8.341125);
+    ctx.lineTo(-9.827127, -6.131416);
+    ctx.lineTo(-11.001035, -3.610967);
+    ctx.bezierCurveTo(-11.001035, -3.610967, -11.035565, -1.539365, -11.035565, -1.401259);
+    ctx.bezierCurveTo(-11.035565, -1.263152, -10.862932, -0.848831, -10.862932, -0.848831);
+    ctx.lineTo(-1.437142, -1.021465);
+    ctx.lineTo(-0.090601, -2.747800);
+    ctx.lineTo(1.290467, -0.986938);
+    ctx.lineTo(10.888888, -1.055988);
+    ctx.lineTo(11.234155, -2.057262);
+    ctx.lineTo(11.026995, -3.127590);
+    ctx.lineTo(9.887615, -5.889725);
+    ctx.lineTo(8.644654, -7.650587);
+    ctx.lineTo(6.883792, -9.411449);
+    ctx.lineTo(5.330091, -10.481777);
+    ctx.lineTo(3.500176, -11.241365);
+    ctx.lineTo(1.601208, -11.344945);
+    ctx.lineTo(1.117834, -11.275895);
+    ctx.lineTo(1.152364, -14.210665);
+    ctx.lineTo(3.741866, -14.176135);
+    ctx.bezierCurveTo(3.741866, -14.176135, 6.020628, -13.382021, 6.158735, -13.278441);
+    ctx.bezierCurveTo(6.296842, -13.174861, 8.644657, -11.655686, 8.644657, -11.655686);
+    ctx.lineTo(10.750785, -9.445976);
+    ctx.lineTo(12.615226, -6.476680);
+    ctx.lineTo(13.823661, -2.437057);
+    ctx.lineTo(13.789131, 0.739400);
+    ctx.lineTo(12.925964, 4.123016);
+    ctx.lineTo(10.957942, 7.851900);
+    ctx.lineTo(8.023174, 10.683088);
+    ctx.lineTo(3.638283, 12.858270);
+    ctx.lineTo(1.808368, 13.341644);
+    ctx.lineTo(1.808368, 10.821195);
+    ctx.lineTo(4.190710, 10.337821);
+    ctx.lineTo(6.434945, 9.025807);
+    ctx.lineTo(8.333914, 7.299472);
+    ctx.lineTo(9.991194, 5.158817);
+    ctx.lineTo(10.992469, 2.741948);
+    ctx.lineTo(10.681728, 1.533514);
+    ctx.lineTo(1.048780, 1.740674);
+    ctx.lineTo(1.014250, 10.579508);
+    ctx.lineTo(1.601204, 10.959301);
+    ctx.lineTo(1.566674, 13.721437);
+    ctx.lineTo(-1.816943, 13.790487);
+    ctx.lineTo(-1.816943, 11.270038);
+    ctx.lineTo(-1.022829, 10.579504);
+    ctx.lineTo(-1.195462, 1.913303);
+    ctx.lineTo(-10.897465, 1.982353);
+    ctx.lineTo(-10.862935, 4.157535);
+    ctx.lineTo(-9.343759, 6.712511);
+    ctx.lineTo(-7.686477, 8.369792);
+    ctx.lineTo(-5.511295, 9.681807);
+    ctx.lineTo(-3.508747, 10.855713);
+    ctx.lineTo(-2.127679, 11.166454);
+    ctx.lineTo(-2.127679, 13.790483);
+    ctx.lineTo(-5.925616, 12.478468);
+    ctx.lineTo(-9.689026, 10.130654);
+    ctx.lineTo(-12.244003, 7.092304);
+    ctx.lineTo(-13.417910, 3.846795);
+    ctx.lineTo(-13.728651, 0.014331);
+    ctx.lineTo(-13.417910, -4.646773);
+    ctx.lineTo(-11.208202, -8.582817);
+    ctx.lineTo(-8.377011, -11.448534);
+    ctx.lineTo(-4.751708, -13.520136);
+    ctx.lineTo(-1.160931, -14.141616);
+    ctx.lineTo(0.772564, -14.038036);
+    ctx.lineTo(0.910677, -9.307873);
+    ctx.stroke();
+    ctx.fill();
+    ctx.restore();
+}
+function draw_support(ctx) {
+    ctx.save();
+    ctx.transform(1.000000, 0.000000, 0.000000, 1.000000, -54.485662, -38.460582);
 
     ctx.beginPath();
-    ctx.fillStyle = "rgba(200,200,200,1)";
-    ctx.strokeStyle = ctx.fillStyle;
-    ctx.moveTo(-halfm*0.8, halfm);
-    ctx.lineTo(halfm*0.8,halfm);
-    ctx.lineTo(0, marker_sz);
-    ctx.lineTo(-halfm*0.8, halfm);
 
-    if( height_diff_large ) {
-        ctx.fill();
+    ctx.moveTo(44.815655, 35.481880);
+    ctx.lineTo(44.884705, 48.774659);
+    ctx.lineTo(49.580336, 48.774659);
+    ctx.lineTo(49.649386, 35.240193);
+    ctx.lineTo(49.166013, 30.130242);
+    ctx.lineTo(47.267044, 27.471686);
+    ctx.lineTo(45.644289, 30.061189);
+    ctx.lineTo(44.884702, 35.723567);
+    ctx.lineTo(44.815655, 35.481880);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(51.513834, 35.654514);
+    ctx.lineTo(51.479304, 51.605848);
+    ctx.lineTo(57.383370, 51.571318);
+    ctx.lineTo(57.452420, 35.585456);
+    ctx.lineTo(56.865466, 30.199291);
+    ctx.lineTo(55.726085, 27.195469);
+    ctx.lineTo(54.724811, 25.538187);
+    ctx.lineTo(53.343743, 26.884728);
+    ctx.lineTo(52.411522, 30.061185);
+    ctx.lineTo(51.513834, 35.654514);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(58.937074, 35.447354);
+    ctx.lineTo(59.075181, 48.774659);
+    ctx.lineTo(64.047026, 48.740129);
+    ctx.lineTo(64.185133, 35.447351);
+    ctx.lineTo(63.391018, 30.302872);
+    ctx.lineTo(62.286164, 28.196744);
+    ctx.lineTo(61.422997, 27.126416);
+    ctx.lineTo(60.697936, 28.196744);
+    ctx.lineTo(60.076455, 30.130239);
+    ctx.lineTo(58.937074, 35.447354);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+}
+
+function draw_arrow(ctx, rotation) {
+    ctx.save();
+    ctx.rotate(rotation);
+    ctx.beginPath();
+    ctx.fillStyle = 'rgb(200, 200, 200)';
+
+    ctx.moveTo(-11.718750, -14.337020);
+    ctx.lineTo(-9.863281, -15.899520);
+    ctx.lineTo(-7.031250, -17.266707);
+    ctx.lineTo(-4.101563, -18.047957);
+    ctx.lineTo(-0.781250, -18.438582);
+    ctx.lineTo(3.417969, -18.438582);
+    ctx.lineTo(6.542969, -17.462020);
+    ctx.lineTo(10.839844, -15.118270);
+    ctx.lineTo(12.500000, -13.946395);
+    ctx.lineTo(0.097656, -40.606551);
+    ctx.lineTo(-11.718750, -14.337020);
+    ctx.fill();
+    ctx.restore();
+}
+
+function draw_player(ctx, player, pos, color) {
+    ctx.save();
+
+    ctx.strokeStyle = color;
+    ctx.fillStyle = (Math.abs(pos.y) <= height_threshold) ? color : "#333";
+
+    ctx.translate(pos.x, pos.z);
+    if(player.isVehicle === true ) {
+        draw_vehicle(ctx);
     } else {
-        ctx.stroke();
+        draw_arrow(ctx, pos.yaw);
+        switch( player.playerClass ) {
+            case "Assault": draw_assault(ctx); break;
+            case "Medic":   draw_medic(ctx); break;
+            case "Scout":   draw_scout(ctx); break;
+            case "Support": draw_support(ctx); break;
+            default: draw_unknown(ctx); break;
+        }
     }
-
     ctx.restore();
 }
 
@@ -107,7 +309,7 @@ function player_to_playerup(local_player_yaw, player) {
         x: -1*player.x*Math.cos(local_player_yaw) - player.z*Math.sin(local_player_yaw),
         y: player.y,
         z: player.x*Math.sin(local_player_yaw) - player.z*Math.cos(local_player_yaw),
-        yaw: player.yaw - local_player_yaw - Math.PI
+        yaw: player.yaw - local_player_yaw// - Math.PI
     }
 }
 
@@ -137,7 +339,7 @@ function draw_fov_cone(ctx, fov, alpha) {
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.lineTo(-map_coords.x, map_coords.z); // mirror about y axis
-    ctx.lineTo(map_coords.x, map_coords.z); 
+    ctx.lineTo(map_coords.x, map_coords.z);
     ctx.lineTo(0, 0);
     ctx.fillStyle = "rgba(200,200,200, "+ alpha + ")";
     ctx.fill();
@@ -154,8 +356,6 @@ function draw_ring(ctx, radius) {
     ctx.stroke();
     ctx.closePath();
     ctx.restore();
-
-
 }
 
 function draw_range_rings(ctx, increment) {
@@ -217,11 +417,7 @@ function draw_team(ctx, local, team_array, color ) {
         var player_space = world_to_player(local_pos, remote_pos);
         var playerup_space = player_to_playerup(local.yaw, player_space);
         var map_space = playerup_to_map(playerup_space);
-        if( remote.isVehicle ) {
-            draw_vehicle(ctx, map_space, color);
-        } else {
-            draw_soldier(ctx, map_space, color);
-        }
+        draw_player(ctx, remote, map_space, color);
     }
 }
 
@@ -247,6 +443,9 @@ function draw_flags(ctx, local, flag_array, mate, enemy, neutral) {
 }
 
 function draw_map() {
+    if (last_response.status !== "success" ) {
+        return;
+    }
     resizeCanvas();
     var ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -258,7 +457,6 @@ function draw_map() {
     var neutral_color = "rgba(200,200,200,1)";
     var unknown_color = '#ffffff';
 
-    if (last_response.status !== "success" ) { return; }
 
     draw_range_rings(ctx);
 

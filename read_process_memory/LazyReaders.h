@@ -241,6 +241,9 @@ namespace lz
 			}
 			ReadProcessMemory(phandle, (void*)indirect, &indirect, sizeof(uintptr_t), 0);
 			uintptr_t ptr_to_entity = indirect - sizeof(uintptr_t);
+			if (!IsValidPtr(ptr_to_entity)) {
+				throw BadClientSoldierEntity{};
+			}
 			return ClientSoldierEntity(phandle, ptr_to_entity);
 		}
 
@@ -302,6 +305,9 @@ namespace lz
 		ClientPlayerManager playerManager() const {
 			uintptr_t off = offsetof(_o::ClientGameManager, m_pPlayerManager);
 			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
+			if (!IsValidPtr(base)) {
+				throw BadClientPlayerManager();
+			}
 			return ClientPlayerManager(phandle, base);
 		}
 		private:
@@ -316,6 +322,9 @@ namespace lz
 		ClientGameManager gameManager() const {
 			uintptr_t off = offsetof(_o::GameClientContext, m_pGameManager);
 			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
+			if (!IsValidPtr(base)) {
+				throw BadClientGameManager();
+			}
 			return ClientGameManager(phandle, base);
 		}
 	protected:

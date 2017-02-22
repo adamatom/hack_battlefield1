@@ -174,10 +174,16 @@ int main()
 			add_flags_to_result(phandle, result);
 			return result;
 		}
-	    catch( const std::out_of_range & e) {
+		catch (const BadClientPlayerManager& e) {
 			(void)e;
 			result["status"] = "failure";
-			result["reason"] = "bad player manager";
+			result["reason"] = "bad client player manager";
+			return result;
+		}
+		catch (const BadClientGameManager& e) {
+			(void)e;
+			result["status"] = "failure";
+			result["reason"] = "bad client game manager";
 			return result;
 		}
 

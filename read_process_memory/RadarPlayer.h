@@ -21,6 +21,7 @@ namespace radar {
 		bool isVehicle() const { return _isVehicle; }
 		float yaw() const { return _yaw; }
 		float fov() const { return _fov; }
+		bool isOccluded() const { return _isOccluded; }
 		D3DXVECTOR3 position() const { return _position; }
 
 	private:
@@ -42,6 +43,7 @@ namespace radar {
 		bool _isVehicle = false;
 		float _yaw = 0.0f;
 		float _fov = 0.0f;
+		bool _isOccluded = false;
 		D3DXVECTOR3 _position;
 	};
 }

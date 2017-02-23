@@ -70,6 +70,7 @@ namespace radar {
 
 	void Player::read_ClientSoldierEntity(const lz::ClientSoldierEntity& cse) {
 		_yaw = cse.yaw();
+		_isOccluded = cse.occluded();
 		try {
 			read_PlayerKit(cse.clientSoldierWeaponsComponent().playerKit());
 		}

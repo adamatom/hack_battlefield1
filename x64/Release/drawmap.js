@@ -406,6 +406,16 @@ function draw_flag(ctx, pos, color, neutral, num_defenders, percent) {
     ctx.restore();
 }
 
+function draw_visible_helper(ctx, pos ) {
+    ctx.save();
+    ctx.strokeStyle = "white";
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(pos.x, pos.z);
+    ctx.stroke();
+    ctx.restore();
+}
+
 function draw_team(ctx, local, team_array, color ) {
     if (team_array == null ) return;
     var local_pos = { x: local.x, y: local.y, z:local.z }
@@ -418,6 +428,9 @@ function draw_team(ctx, local, team_array, color ) {
         var playerup_space = player_to_playerup(local.yaw, player_space);
         var map_space = playerup_to_map(playerup_space);
         draw_player(ctx, remote, map_space, color);
+        if(remote.occluded == false && local.team != remote.team) {
+            draw_visible_helper(ctx, map_space);
+        }
     }
 }
 

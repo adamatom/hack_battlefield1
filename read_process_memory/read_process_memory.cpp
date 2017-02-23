@@ -86,6 +86,7 @@ void read_remote_players(const lz::ClientPlayerManager& player_manager, crow::js
 			result[tstr][tcount]["maxHealth"] = player.maxHealth();
 			result[tstr][tcount]["isVehicle"] = player.isVehicle();
 			result[tstr][tcount]["yaw"] = player.yaw();
+			result[tstr][tcount]["occluded"] = player.isOccluded();
 			auto pos = player.position();
 			result[tstr][tcount]["x"] = pos.x;
 			result[tstr][tcount]["y"] = pos.y;

@@ -123,7 +123,8 @@ public:
 	ClientSoldierWeaponsComponent* soldierWeaponsComponent; //0x0648 
 	char pad_0x0650[0x20]; //0x0650
 	ClientSoldierWeapon* activeSoldierWeapon; //0x0670 
-
+	char pad_0x0678[0x23]; //0x0678
+	__int8 occluded; //0x069B 
 }; //Size=0x0678
 
 class ClientSoldierPrediction

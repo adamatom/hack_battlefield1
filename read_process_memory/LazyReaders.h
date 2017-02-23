@@ -205,6 +205,11 @@ namespace lz
 			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
 			return ClientSoldierWeapon(phandle, base);
 		}
+
+		bool occluded() const {
+			uintptr_t off = offsetof(_o::ClientSoldierEntity, occluded);
+			return 1 == read<__int8>(phandle, base_addr, off);
+		}
 	private:
 		HANDLE phandle;
 		uintptr_t base_addr;
@@ -272,6 +277,9 @@ namespace lz
 		ClientPlayer clientPlayerAt(int index) const {
 			uintptr_t off = index * sizeof(uintptr_t);
 			uintptr_t base = read<uintptr_t>(phandle, base_addr, off);
+			if (!IsValidPtr(base)) {
+				throw BadClientPlayer();
+			}
 			return ClientPlayer(phandle, base);
 		}
 	private:

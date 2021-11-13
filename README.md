@@ -1,4 +1,10 @@
-# GetEntityList
+# hack_battlefield1
+
+This is the implementation and notes for a Battlefield 1 hack. Game data structures were determined and modeled in classes found within `BFTypes.h`. These classes were strictly for defining offsets and the shape of game object data. A matching set of classes is also implemented within `LazyReaders.h`, which provide methods that directly grab the requested data from the in-game memory allocated for the object.
+
+This project uses the Crow C++ header-only REST server. The hack would serve a webpage that displayed a mini-map showing all game player locations, field of view, and game class.
+
+## GetEntityList
 ### Signature Dump
 ```
 00000001447FB580
@@ -39,7 +45,7 @@ Your external formula is:
     retn
 .text:0000000140791AFF j_?getEntityList@fb@@YAPAVEntityList@1@XZ endpo
 ```
-# Get ClassInfo Pointer
+## Get ClassInfo Pointer
 Find string refs in x64dbg. Search for entity type wanted - `ClientCapturePointEntity`. One of the options is `&"ClientCapturePointEntity"`. This is the beginning of the `MemberInfoData` struct. Now use x64dbg to find pattern using the location of the `&"ClientCapturePointEntity"` above. This is the beginning of the `MemberInfo`/`TypeInfo`/`ClassInfo`.
 
 *HACK* It appears that the only code location where the `&ClientCapturePointEntity` string is used has the `ClassInfo` pointer on the next line.
@@ -89,7 +95,7 @@ The `GetTransfor`m for `ClientVehicleEntity`, `ClientSoldierEntity` looks like:
 0000000145071EC3 | 43 0F 10 4C 08 40 | movups xmm1,xmmword ptr ds:[r8+r9+40] |
 0000000145071EC9 | 0F 29 4A 30       | movaps xmmword ptr ds:[rdx+30],xmm1   |
 ```
-# GetEntityData
+## GetEntityData
 This virtual function can be found at vtable entry 10, the 11th pointer. For `ClientCapturePointEntity` we find:
 ```
 0000000144FC7420 | 48 8B 41 30              | mov rax,qword ptr ds:[rcx+30]                 |
@@ -98,7 +104,7 @@ This virtual function can be found at vtable entry 10, the 11th pointer. For `Cl
 
 So the ClientCapturePointEntityData is found at +0x30.
 
-# From Feb Patch, finding the ClientCapturePointEntity
+## From Feb Patch, finding the ClientCapturePointEntity
 Feb: (143CCE7E0)
 
 Find the string we see:
@@ -152,7 +158,7 @@ Looks like a vtable, follow the first entry in the disassembler
 Bingo, 143CCE7E0 matches what we started with in step 1. jump back to `00000001E82ABC50`. From the dump of the
 GetTransform for this class, we know the Transform Matrix is at +320, grab 64 bytes from that.
 
-# GameClientContext
+## GameClientContext
 ### Value
 original: 14341B650
 feb patch: 143436980
@@ -192,7 +198,7 @@ Get into bf1 code, then right click on "follow in dump" then search the followin
 0000000144385153 | 48 8B 05 F6 64 09 FF     | mov rax,qword ptr ds:[14341B650]                         |
 ```
 
-# Interesting Looking Entities
+## Interesting Looking Entities
 
 ```
 String=&"ClientTripwireEntity"
@@ -201,14 +207,14 @@ Address=0000000143EB71F1
 Disassembly=lea rdx,qword ptr ds:[143C9A750]
 ```
 
-# *Not* Interesting Entities
+## *Not* Interesting Entities
 None of these get instantiated:
 * ClientCheckpointFlagEntity
 * ClientObjectiveEntity
 * ClientSpawnEntity
 
 
-# Class Detection Strategy
+## Class Detection Strategy
 1. Take a ClientSoldierEntity.
 2. Go to offset 0x648 to a ClientSoldierWeaponsComponent.
 3. Got to offset 0x8A8 to a PlayerKit (inhouse name).
